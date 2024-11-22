@@ -12,12 +12,15 @@ int main() {
         {10, 11}, {10, 12}, {11, 12} 
     };
     Graph graph(edges);
-    graph.printGraph();
     State s(graph);
-    s.printColor();
     ColoringOperation co;
-    int c = co.backtrack(&s);
-    cout << "Numero de colores backtrack : " << c << endl;
+    int greedyColors = co.greedyColoring(&s);
+    co.OptActual = greedyColors;
+    cout << "Number of colors in greedy coloring: " << greedyColors << endl;
+
+    State s_bnb(graph);
+    co.branchAndBound(&s_bnb);
+    cout << "Number of colors in branch and bound: " << co.OptActual << endl;
     co.best->printColor();
     return 0;
 }

@@ -5,10 +5,15 @@
 #include <vector>
 
 class ColoringOperation {
-    public:
-        State *best;
+public:
+    State *best;
+    int OptActual;
 
-        ColoringOperation();
-        int greedyColoring(State *s);
-        int backtrack(State *s);
+    ColoringOperation();
+    int greedyColoring(State *s);
+    int branchAndBound(State *s);
+
+    int calculateLowerBound(State *s);
+    int selectVertex(State *s);
+    std::vector<int> getAvailableColors(State *s, int vertex);
 };
