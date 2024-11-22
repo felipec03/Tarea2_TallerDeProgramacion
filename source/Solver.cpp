@@ -55,7 +55,9 @@ int ColoringOperation::branchAndBound(State *s) {
     return OptActual;
 }
 
+// Método sencillo para computar el límite inferior de colores
 int ColoringOperation::calculateLowerBound(State *s) {
+    
     int maxDegree = 0;
     for (int vertex : s->uncoloredVertices) {
         int degree = s->graph.vertexNeighbors[vertex].size();
