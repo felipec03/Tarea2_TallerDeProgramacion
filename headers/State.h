@@ -23,5 +23,6 @@ class State {
     bool isVertexColored(int vertex);
     bool isAllColored();
     void printColor();
+    void undoColor(int vertex);
     void incrementColor();
 };

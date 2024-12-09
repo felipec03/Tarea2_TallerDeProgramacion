@@ -36,6 +36,12 @@ void State::printColor() {
     cout << endl;
 }
 
+void State::undoColor(int vertex) {
+    graph.vertexColor.erase(vertex);
+    coloredVertices.erase(vertex);
+    uncoloredVertices.insert(vertex);
+}
+
 void State::incrementColor() {
     int c = graph.getNumberOfColors();
     availableColors.insert(c);

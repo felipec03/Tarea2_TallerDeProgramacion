@@ -13,13 +13,13 @@ int main() {
     Graph graph(edges);
     State s(graph);
     ColoringOperation co;
-    int greedyColors = co.greedyColoring(&s);
-    co.OptActual = greedyColors;
-    cout << "Number of colors in greedy coloring: " << greedyColors << endl;
-
-    State s_bnb(graph);
-    co.branchAndBound(&s_bnb);
-    cout << "Number of colors in branch and bound: " << co.OptActual << endl;
+    co.bruteForceColoring(&s);
+    cout << "Chromatic number found by brute-force: " << co.OptActual << endl;
     co.best->printColor();
+
+    co.greedyColoring(&s);
+    cout << "Chromatic number found by greedy: " << co.OptActual << endl;
+    co.best->printColor(); 
+    
     return 0;
 }

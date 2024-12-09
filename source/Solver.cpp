@@ -90,3 +90,38 @@ vector<int> ColoringOperation::getAvailableColors(State *s, int vertex) {
     colors.push_back(s->availableColors.size());
     return colors;
 }
+
+void ColoringOperation::bruteForceColoring(State *s) {
+    int numVertices = s->graph.vertexNeighbors.size();
+    for (int k = 1; k <= numVertices; ++k) {
+        s->graph.vertexColor.clear();
+        s->uncoloredVertices = ordered_set();
+        s->coloredVertices = ordered_set();
+        for (auto const& par : s->graph.vertexNeighbors) {
+            s->uncoloredVertices.insert(par.first);
+        }
+        if (backtrack(s, 0, k)) {
+            OptActual = k;
+            best = new State(*s);
+            break;
+        }
+    }
+}
+
+bool ColoringOperation::backtrack(State *s, size_t vertexIndex, int maxColors) {
+    if (vertexIndex == s->graph.vertexNeighbors.size()) {
+        return true;
+    }
+
+    int vertex = *std::next(s->uncoloredVertices.begin(), vertexIndex);
+    for (int color = 0; color < maxColors; ++color) {
+        if (s->graph.canColor(vertex, color)) {
+            s->pushColorSelectVertex(vertex, color);
+            if (backtrack(s, vertexIndex + 1, maxColors)) {
+                return true;
+            }
+            s->undoColor(vertex);
+        }
+    }
+    return false;
+}
