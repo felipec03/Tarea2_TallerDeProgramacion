@@ -1,8 +1,12 @@
 // main.cpp
 #include "headers/Solver.h"
 #include "headers/FileReader.h"
+#include <chrono>
+
+using namespace std;
 
 int main() {
+    // Lectura del archivo
     string filename;
     cout << "Ingrese el nombre del archivo: ";
     cin >> filename;
@@ -10,16 +14,25 @@ int main() {
     fr.readGraph();
     vector<vector<int>> edges = fr.getGraph();
 
+    // Creación del grafo y el estado
     Graph graph(edges);
     State s(graph);
     ColoringOperation co;
-    co.bruteForceColoring(&s);
-    cout << "Chromatic number found by brute-force: " << co.OptActual << endl;
-    co.best->printColor();
-
-    co.greedyColoring(&s);
-    cout << "Chromatic number found by greedy: " << co.OptActual << endl;
-    co.best->printColor(); 
     
+    // Solución por Branch and Bound
+    auto start = std::chrono::system_clock::now();
+
+    co.branchAndBoundColoring(&s);
+    cout << "Aproximación de Número Cromático con Branch and Bound: " << co.OptActual << endl;
+    co.best->printColor();
+    
+    auto end = std::chrono::system_clock::now();
+
+    std::chrono::duration<float,std::milli> duration = end - start;
+
+    cout << "Se demoró: " << duration.count() << "[s]"<< endl;
+
+    getchar();
+
     return 0;
 }

@@ -1,3 +1,4 @@
+// State.cpp
 #include "State.h"
 
 State::State(Graph graph) {
@@ -5,6 +6,7 @@ State::State(Graph graph) {
     for (auto const& par : graph.vertexNeighbors) {
         uncoloredVertices.insert(par.first);
     }
+    maxColors = graph.vertexNeighbors.size();
 }
 
 int State::getVertex(){
@@ -31,7 +33,7 @@ bool State::isAllColored() {
 
 void State::printColor() {
     for (auto const& par : graph.vertexColor) {
-        cout << par.first << "->" << par.second << " ";
+        cout << par.first << " -> " << par.second << " ";
     }
     cout << endl;
 }
@@ -40,9 +42,4 @@ void State::undoColor(int vertex) {
     graph.vertexColor.erase(vertex);
     coloredVertices.erase(vertex);
     uncoloredVertices.insert(vertex);
-}
-
-void State::incrementColor() {
-    int c = graph.getNumberOfColors();
-    availableColors.insert(c);
 }

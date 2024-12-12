@@ -6,6 +6,12 @@ all: main
 main: FileReader.o Graph.o State.o Solver.o main.o
 	g++ $(FLAGS) main.o FileReader.o Graph.o State.o Solver.o -o main
 
+testState: FileReader.o Graph.o State.o testState.o
+	g++ $(FLAGS) testState.o FileReader.o Graph.o State.o -o testState
+
+testGraph: FileReader.o Graph.o testGraph.o
+	g++ $(FLAGS) testGraph.o FileReader.o Graph.o -o testGraph
+
 Graph.o: headers/Graph.h source/Graph.cpp 
 	g++ -c $(FLAGS) $(INCLUDES) source/Graph.cpp -o Graph.o
 
@@ -21,5 +27,16 @@ FileReader.o: headers/FileReader.h source/FileReader.cpp
 main.o: main.cpp headers/Graph.h headers/State.h headers/Solver.h
 	g++ -c $(FLAGS) $(INCLUDES) main.cpp -o main.o
 
+testGraph.o: tdatest/testGraph.cpp headers/State.h headers/Graph.h headers/FileReader.h
+	g++ -c $(FLAGS) $(INCLUDES) tdatest/testGraph.cpp -o testGraph.o
+
+testState.o: tdatest/testState.cpp headers/State.h headers/FileReader.h
+	g++ -c $(FLAGS) $(INCLUDES) tdatest/testState.cpp -o testState.o
+
+makeTests: testGraph testState
+
+cleanTests:
+	rm -f testState testGraph
+
 clean:
-	rm -f *.o
+	rm -f *.o testState testGraph

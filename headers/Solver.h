@@ -7,17 +7,18 @@
 class ColoringOperation {
 public:
     State *best;
-    int OptActual;
+    size_t OptActual;
 
     ColoringOperation();
     int greedyColoring(State *s);
-    int branchAndBound(State *s);
 
     void bruteForceColoring(State *s);
     bool backtrack(State *s, size_t vertexIndex, int maxColors);
 
-    
-    int calculateLowerBound(State *s);
+    void branchAndBoundColoring(State *s);
+    bool backtrackBB(State *s);
+
+    size_t calculateLowerBound(State *s);
     int selectVertex(State *s);
     std::vector<int> getAvailableColors(State *s, int vertex);
 };

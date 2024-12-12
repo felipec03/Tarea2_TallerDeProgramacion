@@ -1,3 +1,4 @@
+// Graph.cpp
 #include "Graph.h"
 
 Graph::Graph() {
@@ -10,8 +11,8 @@ Graph::Graph(vector<vector<int>> edges) {
     }
 }
 
-int Graph::getNumberOfColors() {
-    ordered_set colors;
+size_t Graph::getNumberOfColors() {
+    unordered_set<int> colors;
     for (auto par : vertexColor) {
         colors.insert(par.second);
     }
@@ -20,8 +21,8 @@ int Graph::getNumberOfColors() {
 
 bool Graph::canColor(int vertex, int color) {
     for (int neighbor : vertexNeighbors[vertex]) {
-        if (vertexColor.find(neighbor) != vertexColor.end() && 
-            vertexColor[neighbor] == color) {
+        auto it = vertexColor.find(neighbor);
+        if (it != vertexColor.end() && it->second == color) {
             return false;
         }
     }

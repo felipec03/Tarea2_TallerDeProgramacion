@@ -1,5 +1,7 @@
+// Solver.cpp
 #include "Solver.h"
 #include <climits>
+#include <algorithm>
 
 ColoringOperation::ColoringOperation() {
     best = nullptr;
@@ -7,117 +9,88 @@ ColoringOperation::ColoringOperation() {
 }
 
 int ColoringOperation::greedyColoring(State *s) {
-    while (!s->isAllColored()) {
-        int vertex = s->getVertex();
-        for (int color : s->availableColors) {
+    // Sort vertices by decreasing degree
+    vector<int> vertices;
+    for (auto const& par : s->graph.vertexNeighbors) {
+        vertices.push_back(par.first);
+    }
+    sort(vertices.begin(), vertices.end(), [&](int a, int b) {
+        return s->graph.vertexNeighbors[a].size() > s->graph.vertexNeighbors[b].size();
+    });
+
+    for (int vertex : vertices) {
+        for (size_t color = 0; color < s->graph.vertexNeighbors.size(); ++color) {
             if (s->graph.canColor(vertex, color)) {
-                s->pushColorSelectVertex(vertex, color);
+                s->graph.vertexColor[vertex] = color;
                 break;
             }
-        }
-        if (!s->isVertexColored(vertex)) {
-            int c = s->graph.getNumberOfColors();
-            s->pushColorSelectVertex(vertex, c);
-            s->availableColors.insert(c);
         }
     }
     best = new State(*s);
     return s->graph.getNumberOfColors();
 }
 
-int ColoringOperation::branchAndBound(State *s) {
-    if (s->isAllColored()) {
-        int numColors = s->graph.getNumberOfColors();
-        if (numColors < OptActual) {
-            OptActual = numColors;
-            delete best;
-            best = new State(*s);
-        }
-        return numColors;
-    }
-
-    int LB = calculateLowerBound(s);
-    if (LB >= OptActual) {
-        return -1;
-    }
-
-    int vertex = selectVertex(s);
-    vector<int> colors = getAvailableColors(s, vertex);
-
-    for (int color : colors) {
-        if (s->graph.canColor(vertex, color)) {
-            State *s1 = new State(*s);
-            s1->pushColorSelectVertex(vertex, color);
-            branchAndBound(s1);
-            delete s1;
-        }
-    }
-    return OptActual;
-}
-
-// Método sencillo para computar el límite inferior de colores
-int ColoringOperation::calculateLowerBound(State *s) {
-    
-    int maxDegree = 0;
-    for (int vertex : s->uncoloredVertices) {
-        int degree = s->graph.vertexNeighbors[vertex].size();
+size_t ColoringOperation::calculateLowerBound(State *s) {
+    size_t maxDegree = 0;
+    for (auto const& par : s->graph.vertexNeighbors) {
+        size_t degree = par.second.size();
         if (degree > maxDegree) {
             maxDegree = degree;
         }
     }
-    int lb = s->graph.getNumberOfColors();
-    return lb + 1;
+    return maxDegree + 1;
 }
 
 int ColoringOperation::selectVertex(State *s) {
-    int maxDegree = -1;
     int selectedVertex = -1;
+    int minRemainingColors = INT_MAX;
+
     for (int vertex : s->uncoloredVertices) {
-        int degree = s->graph.vertexNeighbors[vertex].size();
-        if (degree > maxDegree) {
-            maxDegree = degree;
+        int remainingColors = 0;
+        for (size_t color = 0; color < s->maxColors; ++color) {
+            if (s->graph.canColor(vertex, color)) {
+                ++remainingColors;
+            }
+        }
+        if (remainingColors < minRemainingColors) {
+            minRemainingColors = remainingColors;
             selectedVertex = vertex;
         }
     }
     return selectedVertex;
 }
 
-vector<int> ColoringOperation::getAvailableColors(State *s, int vertex) {
-    vector<int> colors;
-    for (int color : s->availableColors) {
-        colors.push_back(color);
-    }
-    colors.push_back(s->availableColors.size());
-    return colors;
+void ColoringOperation::branchAndBoundColoring(State *s) {
+    OptActual = greedyColoring(new State(s->graph));
+    best = new State(*s);
+
+    s->maxColors = OptActual - 1;
+    backtrackBB(s);
 }
 
-void ColoringOperation::bruteForceColoring(State *s) {
-    int numVertices = s->graph.vertexNeighbors.size();
-    for (int k = 1; k <= numVertices; ++k) {
-        s->graph.vertexColor.clear();
-        s->uncoloredVertices = ordered_set();
-        s->coloredVertices = ordered_set();
-        for (auto const& par : s->graph.vertexNeighbors) {
-            s->uncoloredVertices.insert(par.first);
-        }
-        if (backtrack(s, 0, k)) {
-            OptActual = k;
+bool ColoringOperation::backtrackBB(State *s) {
+    if (s->isAllColored()) {
+        size_t usedColors = s->graph.getNumberOfColors();
+        if (usedColors < OptActual) {
+            OptActual = usedColors;
+            delete best;
             best = new State(*s);
-            break;
+            s->maxColors = OptActual - 1;
         }
-    }
-}
-
-bool ColoringOperation::backtrack(State *s, size_t vertexIndex, int maxColors) {
-    if (vertexIndex == s->graph.vertexNeighbors.size()) {
-        return true;
+        return usedColors == s->maxColors;
     }
 
-    int vertex = *std::next(s->uncoloredVertices.begin(), vertexIndex);
-    for (int color = 0; color < maxColors; ++color) {
+    size_t lowerBound = calculateLowerBound(s);
+    if (lowerBound >= OptActual) {
+        return false;
+    }
+
+    int vertex = selectVertex(s);
+    for (size_t color = 0; color < s->maxColors; ++color) {
         if (s->graph.canColor(vertex, color)) {
             s->pushColorSelectVertex(vertex, color);
-            if (backtrack(s, vertexIndex + 1, maxColors)) {
+            if (backtrackBB(s)) {
+                s->undoColor(vertex);
                 return true;
             }
             s->undoColor(vertex);
